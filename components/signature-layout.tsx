@@ -1,6 +1,6 @@
 "use client";
 
-import { forwardRef, useRef, useState } from "react";
+import { forwardRef, ReactNode, useRef, useState } from "react";
 import { toPng } from "html-to-image";
 import { Copy, Upload } from "lucide-react";
 
@@ -41,6 +41,8 @@ const imgEllipse2 =
   "https://www.figma.com/api/mcp/asset/cc5d9e14-f72c-42f1-a47e-9e3cdf55326a";
 const imgEllipse3 =
   "https://www.figma.com/api/mcp/asset/e5a20824-4d6f-4248-97b8-fd0593320c4a";
+const imgWhatsAppIcon =
+  "https://www.figma.com/api/mcp/asset/7a084744-040a-4af7-abb4-64ad2321b9e0";
 
 type SignatureLayoutProps = {
   data: SignatureData;
@@ -197,11 +199,18 @@ type SignatureCanvasProps = {
 const SignatureCanvas = forwardRef<HTMLDivElement, SignatureCanvasProps>(
   function SignatureCanvas({ data }, ref) {
     const fontRoot = "font-[family-name:var(--font-montserrat)]";
-    const formattedWhatsApp = formatPhoneNumber(data.whatsapp);
+    const defaultPhone = "(11) 4416-6868";
     const hasWhatsApp = !!data.whatsapp && !data.noWhatsApp;
-    const phoneText = data.noRamal
-      ? formattedWhatsApp
-      : `${formattedWhatsApp} - Ramal: ${data.ramal}`;
+    const formattedWhatsApp = formatPhoneNumber(data.whatsapp);
+    const details: string[] = [];
+
+    if (!data.noRamal && data.ramal.trim()) {
+      details.push(`Ramal ${data.ramal}`);
+    }
+
+    const phoneText = details.length > 0
+      ? `${defaultPhone} - ${details.join(" / ")}`
+      : defaultPhone;
 
     return (
       <div
@@ -268,18 +277,36 @@ const SignatureCanvas = forwardRef<HTMLDivElement, SignatureCanvasProps>(
             {data.cargo}
           </div>
 
-          {hasWhatsApp ? (
-            <IconTextRow icon={imgPhone} top={77} left={258} text={phoneText} />
-          ) : null}
+          <IconTextRow
+            icon={imgPhone}
+            top={77}
+            left={258}
+            text={
+              hasWhatsApp ? (
+                <span className="inline-flex items-center gap-1">
+                  {phoneText} / 
+                  <img
+                    alt="WhatsApp"
+                    src={imgWhatsAppIcon}
+                    crossOrigin="anonymous"
+                    className="h-[15px] w-[15px] object-contain"
+                  />
+                  {formattedWhatsApp}
+                </span>
+              ) : (
+                phoneText
+              )
+            }
+          />
           <IconTextRow
             icon={imgEmail}
-            top={hasWhatsApp ? 102 : 77}
+            top={102}
             left={258}
             text={data.email}
           />
           <IconTextRow
             icon={imgAddress}
-            top={hasWhatsApp ? 129 : 104}
+            top={129}
             left={258}
             text={data.address}
             width={245}
@@ -288,7 +315,7 @@ const SignatureCanvas = forwardRef<HTMLDivElement, SignatureCanvasProps>(
           />
           <IconTextRow
             icon={imgInternet}
-            top={hasWhatsApp ? 171 : 146}
+            top={171}
             left={258}
             text="www.larplasticos.com.br"
           />
@@ -328,14 +355,16 @@ function IconTextRow({
   width,
   className,
   align = "center",
+  trailingIcon,
 }: {
   icon: string;
   top: number;
   left: number;
-  text: string;
+  text: ReactNode;
   width?: number;
   className?: string;
   align?: "center" | "start";
+  trailingIcon?: ReactNode;
 }) {
   return (
     <div
@@ -355,7 +384,12 @@ function IconTextRow({
           align === "start" ? "mt-[3px]" : ""
         )}
       />
-      <p className="text-[11.5px] font-medium leading-[1.02]">{text}</p>
+      <p className="text-[11.5px] font-medium leading-[1.02]">
+        {text}
+        {trailingIcon ? (
+          <span className="ml-1 inline-flex items-center">{trailingIcon}</span>
+        ) : null}
+      </p>
     </div>
   );
 }

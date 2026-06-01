@@ -38,7 +38,7 @@ const branchValues = branchOptions.map((branch) => branch.value) as [
 ];
 
 export const contactFormSchema = z.object({
-  nome: z.string().trim().min(3, "Informe o nome completo."),
+  nome: z.string().trim().min(3, "Informe o nome.").max(20, "O nome deve ter no máximo 20 caracteres."),
   cargo: z.string().trim().min(2, "Informe o cargo."),
   ramal: z.string().trim(),
   noRamal: z.boolean(),

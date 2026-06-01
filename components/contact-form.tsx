@@ -201,7 +201,8 @@ export function ContactForm() {
                   <FieldWithIcon icon={User}>
                     <Input
                       id="nome"
-                      placeholder="Nome completo"
+                      placeholder="Nome"
+                      maxLength={20}
                       className="pl-10"
                       {...register("nome")}
                       onBlur={(e) => {
@@ -293,7 +294,7 @@ export function ContactForm() {
                       />
                       <span
                         aria-hidden="true"
-                        className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 whitespace-nowrap text-sm text-slate-500 bg-white border-l border-slate-200 px-3 py-1 rounded-r-md shadow-sm"
+                        className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 whitespace-nowrap text-sm text-black bg-white border-l border-slate-200 px-3 py-1 rounded-r-md shadow-sm"
                       >
                         @larplasticos.com.br
                       </span>

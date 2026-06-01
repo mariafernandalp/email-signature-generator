@@ -2,6 +2,11 @@ import { z } from "zod";
 
 export const branchOptions = [
   {
+    value: "matriz-atibaia",
+    label: "ATIBAIA",
+    address: "Rod. Dom Pedro I, km 73 - Mato Dentro, Atibaia - SP, 12954-260",
+  },
+  {
     value: "rj",
     label: "RIO DE JANEIRO",
     address:
@@ -24,11 +29,6 @@ export const branchOptions = [
     label: "PERNAMBUCO",
     address:
       "54.360-040 Rodovia Empresario Joao Santos Filho, 2524 - Marcos Freire, Jaboatao dos Guararapes - PE, 54.360-040 Jaboatao dos Guararapes, PE",
-  },
-  {
-    value: "matriz-atibaia",
-    label: "ATIBAIA",
-    address: "Rod. Dom Pedro I, km 73 - Mato Dentro, Atibaia - SP, 12954-260",
   },
 ] as const;
 

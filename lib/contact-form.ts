@@ -3,7 +3,7 @@ import { z } from "zod";
 export const branchOptions = [
   {
     value: "rj",
-    label: "FILIAL RJ",
+    label: "RIO DE JANEIRO",
     address:
       "Estrada Beira Rio, 183 Galpão 4 D Município Duque de Caxias, Duque de Caxias - RJ, 25250-415",
   },
@@ -27,7 +27,7 @@ export const branchOptions = [
   },
   {
     value: "matriz-atibaia",
-    label: "MATRIZ ATIBAIA",
+    label: "ATIBAIA",
     address: "Rod. Dom Pedro I, km 73 - Mato Dentro, Atibaia - SP, 12954-260",
   },
 ] as const;

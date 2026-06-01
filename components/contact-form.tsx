@@ -82,6 +82,15 @@ export function ContactForm() {
     (branch) => branch.value === selectedEndereco
   );
 
+  function toTitleCase(value: string) {
+    return value
+      .toLowerCase()
+      .split(/\s+/)
+      .filter(Boolean)
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(" ");
+  }
+
   const onSubmit = async (values: ContactFormValues) => {
     setFeedback({ kind: "idle", message: "" });
 
@@ -96,6 +105,8 @@ export function ContactForm() {
     }
 
     const supabase = createSupabaseBrowserClient();
+    const nome = toTitleCase(values.nome.trim());
+    const cargo = toTitleCase(values.cargo.trim());
     const ramal = values.noRamal ? "Não tenho" : values.ramal.trim();
     const emailLocal = values.email.replace(/@.*$/, "").trim();
     const email = `${emailLocal}@larplasticos.com.br`;
@@ -105,8 +116,8 @@ export function ContactForm() {
       .from("contact_submissions")
       .insert([
       {
-        nome: values.nome,
-        cargo: values.cargo,
+        nome,
+        cargo,
         ramal,
         email,
         whatsapp,
@@ -142,6 +153,8 @@ export function ContactForm() {
 
     const signaturePayload = {
       ...values,
+      nome,
+      cargo,
       email,
       whatsapp,
       ramal,
@@ -191,6 +204,10 @@ export function ContactForm() {
                       placeholder="Nome completo"
                       className="pl-10"
                       {...register("nome")}
+                      onBlur={(e) => {
+                        const v = toTitleCase((e.target as HTMLInputElement).value || "");
+                        setValue("nome", v, { shouldDirty: true, shouldTouch: true });
+                      }}
                     />
                   </FieldWithIcon>
                   {errors.nome ? (
@@ -206,6 +223,10 @@ export function ContactForm() {
                       placeholder="Ex.: Analista Comercial"
                       className="pl-10"
                       {...register("cargo")}
+                      onBlur={(e) => {
+                        const v = toTitleCase((e.target as HTMLInputElement).value || "");
+                        setValue("cargo", v, { shouldDirty: true, shouldTouch: true });
+                      }}
                     />
                   </FieldWithIcon>
                   {errors.cargo ? (
@@ -219,10 +240,10 @@ export function ContactForm() {
                     <Input
                       id="ramal"
                       placeholder="Ex.: 1234"
-                      inputMode="numeric"
-                      disabled={noRamal}
-                      className="pl-10"
-                      {...register("ramal")}
+                        inputMode="numeric"
+                        disabled={noRamal}
+                        className={"pl-10 " + (noRamal ? "opacity-50 bg-white/40 text-slate-500 cursor-not-allowed" : "")}
+                        {...register("ramal")}
                     />
                   </FieldWithIcon>
                   <label className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -291,8 +312,8 @@ export function ContactForm() {
                       inputMode="tel"
                       placeholder="(11) 9 9999 9999"
                       maxLength={16}
-                      className="pl-10"
-                      disabled={noWhatsApp}
+                        className={"pl-10 " + (noWhatsApp ? "opacity-50 bg-white/40 text-slate-500 cursor-not-allowed" : "")}
+                        disabled={noWhatsApp}
                       {...register("whatsapp", {
                         onChange: (event) => {
                           const value = event.target.value;
@@ -330,7 +351,7 @@ export function ContactForm() {
                 </div>
 
                 <div className="space-y-2 sm:col-span-2">
-                  <Label htmlFor="endereco">Endereço / Filial</Label>
+                  <Label htmlFor="endereco">Endereço</Label>
                   <FieldWithIcon icon={MapPin}>
                     <Select id="endereco" className="pl-10" {...register("endereco")}>
                       {branchOptions.map((branch) => (

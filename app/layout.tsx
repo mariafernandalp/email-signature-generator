@@ -18,8 +18,13 @@ const montserrat = Montserrat({
 });
 
 export const metadata: Metadata = {
-  title: "Cadastro de Contato | Lar Plásticos",
-  description: "Formulário de cadastro de contato com envio para o Supabase.",
+  title: "Gerador de Assinaturas | Lar Plásticos",
+  description: "Formulário de gerador de assinaturas de email para colaboradores da LAR Plásticos.",
+  icons: {
+    icon: [
+      { url: "/simbolo.png", sizes: "256x256", type: "image/png" },
+    ],
+  },
 };
 
 export default function RootLayout({

@@ -21,3 +21,15 @@ create policy "Allow public insert on contact submissions"
   for insert
   to anon
   with check (true);
+
+create policy "Allow public upload to signatures bucket"
+  on storage.objects
+  for insert
+  to anon
+  with check (bucket_id = 'assinaturas');
+
+create policy "Allow public read from signatures bucket"
+  on storage.objects
+  for select
+  to anon
+  using (bucket_id = 'assinaturas');

@@ -40,10 +40,40 @@ const branchValues = branchOptions.map((branch) => branch.value) as [
 export const contactFormSchema = z.object({
   nome: z.string().trim().min(3, "Informe o nome completo."),
   cargo: z.string().trim().min(2, "Informe o cargo."),
-  ramal: z.string().trim().min(2, "Informe o ramal."),
-  email: z.string().trim().email("Informe um email válido."),
-  whatsapp: z.string().trim().min(8, "Informe o WhatsApp."),
+  ramal: z.string().trim(),
+  noRamal: z.boolean(),
+  email: z
+    .string()
+    .trim()
+    .min(1, "Informe o início do email.")
+    .regex(/^[a-zA-Z0-9][a-zA-Z0-9._-]*$/, "Informe apenas o início do email, sem @.") ,
+  whatsapp: z.string().trim(),
+  noWhatsApp: z.boolean(),
   endereco: z.enum(branchValues),
+}).superRefine((values, context) => {
+  if (!values.noRamal && !values.ramal.trim()) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["ramal"],
+      message: "Informe o ramal ou marque que não tem.",
+    });
+  }
+
+  if (!values.noWhatsApp) {
+    if (!values.whatsapp.trim()) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["whatsapp"],
+        message: "Informe o WhatsApp ou marque que não quer informar.",
+      });
+    } else if (!/^\(\d{2}\) \d \d{4} \d{4}$/.test(values.whatsapp)) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["whatsapp"],
+        message: "Informe o WhatsApp no formato (dd) x xxxx xxxx.",
+      });
+    }
+  }
 });
 
 export type ContactFormValues = z.infer<typeof contactFormSchema>;

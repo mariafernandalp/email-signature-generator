@@ -1,25 +1,46 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { forwardRef, useRef, useState } from "react";
 import { toPng } from "html-to-image";
-import {
-  Download,
-  Globe,
-  Mail,
-  MapPin,
-  Phone,
-  Recycle,
-  Sparkles,
-} from "lucide-react";
+import { Copy, Upload } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { SignatureData } from "@/lib/signature";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
-const exportWidth = 450;
-const exportHeight = 180;
-const previewWidth = 760;
-const previewHeight = 280;
+const canvasWidth = 600;
+const canvasHeight = 200;
+
+function formatPhoneNumber(value: string) {
+  const digits = value.replace(/\D/g, "");
+  if (digits.length !== 11) {
+    return value;
+  }
+
+  return `(${digits.slice(0, 2)}) ${digits.slice(2, 3)} ${digits.slice(3, 7)} ${digits.slice(7)}`;
+}
+
+const imgWhatsAppImage20260513At1025251 =
+  "https://www.figma.com/api/mcp/asset/ee62394f-c38a-4842-b609-e5a8b5ec9bd5";
+const imgLogo031 =
+  "https://www.figma.com/api/mcp/asset/9d80fd46-c861-4538-8377-c4356b1b6792";
+const imgPhone =
+  "https://www.figma.com/api/mcp/asset/3f055a37-60b4-4e91-9050-7e7686017b3b";
+const imgEmail =
+  "https://www.figma.com/api/mcp/asset/a6f011b6-0e69-401e-836b-addd922f781b";
+const imgAddress =
+  "https://www.figma.com/api/mcp/asset/d12d36f0-529f-4c17-b0f3-d1cf290df777";
+const imgInternet =
+  "https://www.figma.com/api/mcp/asset/f2fb8efd-53e5-4283-8d31-1eb6494804f1";
+const imgSimboloCinzaA4Degrade1 =
+  "https://www.figma.com/api/mcp/asset/0f4be110-5e11-44ae-acc1-901ac96da631";
+const imgSImbolo1 =
+  "https://www.figma.com/api/mcp/asset/0c7bf45b-39d2-4e50-bd45-7ad16927d219";
+const imgEllipse2 =
+  "https://www.figma.com/api/mcp/asset/cc5d9e14-f72c-42f1-a47e-9e3cdf55326a";
+const imgEllipse3 =
+  "https://www.figma.com/api/mcp/asset/e5a20824-4d6f-4248-97b8-fd0593320c4a";
 
 type SignatureLayoutProps = {
   data: SignatureData;
@@ -28,151 +49,313 @@ type SignatureLayoutProps = {
 
 export function SignatureLayout({ data, className }: SignatureLayoutProps) {
   const signatureRef = useRef<HTMLDivElement>(null);
-  const [isDownloading, setIsDownloading] = useState(false);
+  const [isPublishing, setIsPublishing] = useState(false);
+  const [publicImageUrl, setPublicImageUrl] = useState<string | null>(null);
+  const [publishError, setPublishError] = useState<string | null>(null);
+  const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
 
-  const handleDownload = async () => {
-    if (!signatureRef.current || isDownloading) {
+  const renderSignaturePng = async () => {
+    if (!signatureRef.current) {
+      throw new Error("Assinatura não está pronta para exportação.");
+    }
+
+    return toPng(signatureRef.current, {
+      cacheBust: true,
+      pixelRatio: 1,
+      canvasWidth,
+      canvasHeight,
+    });
+  };
+
+  const slugify = (value: string) =>
+    value
+      .normalize("NFD")
+      .replace(/\p{Diacritic}/gu, "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)/g, "")
+      .slice(0, 80);
+
+  const handlePublish = async () => {
+    if (isPublishing) {
       return;
     }
 
-    setIsDownloading(true);
+    setIsPublishing(true);
+    setPublishError(null);
 
     try {
-      const pngUrl = await toPng(signatureRef.current, {
-        cacheBust: true,
-        pixelRatio: 2,
-        canvasWidth: exportWidth,
-        canvasHeight: exportHeight,
-      });
+      const pngUrl = await renderSignaturePng();
+      const pngBlob = await fetch(pngUrl).then((response) => response.blob());
+      const supabase = createSupabaseBrowserClient();
+      const slug = slugify(`${data.nome}-${data.cargo}`) || "assinatura";
+      const fileName = `assinatura-${slug}.png`;
+      const filePath = `gmail/${fileName}`;
 
-      const link = document.createElement("a");
-      link.download = "assinatura-lar-plasticos.png";
-      link.href = pngUrl;
-      link.click();
+      const { error: uploadError } = await supabase.storage
+        .from("assinaturas")
+        .upload(filePath, pngBlob, {
+          contentType: "image/png",
+          upsert: true,
+        });
+
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      const { data: publicUrlData } = supabase.storage.from("assinaturas").getPublicUrl(filePath);
+
+      setPublicImageUrl(publicUrlData.publicUrl);
+      await copyPublicLink(publicUrlData.publicUrl);
+    } catch (error) {
+      setPublishError(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível publicar a assinatura no Supabase."
+      );
     } finally {
-      setIsDownloading(false);
+      setIsPublishing(false);
     }
+  };
+
+  const copyPublicLink = async (publicUrl: string) => {
+    if (!navigator.clipboard?.writeText) {
+      setCopyFeedback("O link está disponível abaixo para copiar manualmente.");
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(publicUrl);
+      setCopyFeedback("Link copiado para a área de transferência.");
+    } catch {
+      setCopyFeedback("Não foi possível copiar automaticamente. Copie manualmente.");
+    }
+  };
+
+  const getDisplayUrl = (url: string) => {
+    if (url.length <= 48) {
+      return url;
+    }
+
+    return `${url.slice(0, 35)}...${url.slice(-10)}`;
   };
 
   return (
     <section className={cn("relative w-full", className)}>
-      <Button
-        type="button"
-        onClick={handleDownload}
-        className="fixed bottom-6 right-6 z-20 gap-2 rounded-full bg-green-700 px-5 py-6 text-white shadow-2xl shadow-green-950/25 hover:bg-green-800"
-        disabled={isDownloading}
-      >
-        <Download className="h-4 w-4" />
-        {isDownloading ? "Gerando..." : "Download"}
-      </Button>
-
-      <div className="mx-auto w-full max-w-[760px] space-y-4">
-        <div className="overflow-x-auto rounded-[24px] border border-green-950/10 bg-green-700 p-2 shadow-2xl shadow-green-950/20 sm:p-3">
-          <div className="min-w-[760px]">
-            <div className="overflow-hidden rounded-[20px] bg-green-700">
-              <SignatureCard data={data} mode="preview" />
+      <div className="mb-6 rounded-2xl border border-white/10 bg-white p-4 overflow-x-auto">
+        <SignatureCanvas ref={signatureRef} data={data} />
+      </div>
+      <div className="mt-4 flex flex-col gap-3">
+        <Button
+          type="button"
+          onClick={handlePublish}
+          className="gap-2 rounded-full bg-lime-600 px-5 py-6 text-white shadow-2xl shadow-green-950/25 hover:bg-lime-700"
+          disabled={isPublishing || !!publicImageUrl}
+        >
+          <Upload className="h-4 w-4" />
+          {publicImageUrl ? "Link gerado" : isPublishing ? "Gerando..." : "Gerar link"}
+        </Button>
+        {publicImageUrl ? (
+          <div className="rounded-2xl border border-white/15 bg-white/10 p-4 text-white">
+            <p className="text-sm font-semibold">Link pronto para o Gmail!</p>
+            <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+              <a
+                href={publicImageUrl}
+                target="_blank"
+                rel="noreferrer"
+                title={publicImageUrl}
+                className="min-w-0 truncate text-sm text-lime-100 underline decoration-white/30 underline-offset-4"
+              >
+                {getDisplayUrl(publicImageUrl)}
+              </a>
+              <Button
+                type="button"
+                onClick={() => copyPublicLink(publicImageUrl)}
+                className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm text-white transition hover:bg-white/15"
+              >
+                <Copy className="h-4 w-4" />
+                {copyFeedback === "Link copiado para a área de transferência." ? "Copiado" : "Copiar link"}
+              </Button>
             </div>
+            {copyFeedback ? (
+              <p className="mt-2 text-sm font-medium text-lime-100">{copyFeedback}</p>
+            ) : null}
           </div>
-        </div>
+        ) : null}
 
-        <div className="pointer-events-none absolute -left-[10000px] top-0 opacity-0">
-          <div ref={signatureRef}>
-            <SignatureCard data={data} mode="export" />
-          </div>
-        </div>
-        <p className="text-center text-xs text-white/70">
-          Prévia ampliada na tela. O download sai no tamanho compacto ideal para assinatura de e-mail.
-        </p>
-        </div>
+        {publishError ? <p className="text-sm text-red-100">{publishError}</p> : null}
+
+      </div>
     </section>
   );
 }
 
-function SignatureCard({
-  data,
-  mode,
-}: {
+type SignatureCanvasProps = {
   data: SignatureData;
-  mode: "preview" | "export";
-}) {
-  const isPreview = mode === "preview";
+};
 
-  return (
-    <div
-      className="relative overflow-hidden bg-green-700"
-      style={{
-        width: `${isPreview ? previewWidth : exportWidth}px`,
-        height: `${isPreview ? previewHeight : exportHeight}px`,
-      }}
-    >
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.10),transparent_35%),radial-gradient(circle_at_bottom_left,rgba(255,255,255,0.06),transparent_34%)]" />
-      <div className="relative flex h-full overflow-hidden">
-        <div className="flex w-[31%] items-center justify-center border-r border-white/12 px-4">
-          <div className="flex flex-col items-center gap-2 text-center text-white">
-            <div
-              className={cn(
-                "flex items-center justify-center rounded-full border border-white/18 bg-white/10 shadow-lg shadow-black/10 backdrop-blur-sm",
-                isPreview ? "h-[4.5rem] w-[4.5rem]" : "h-14 w-14"
-              )}
-            >
-              <Recycle className={cn(isPreview ? "h-9 w-9" : "h-7 w-7", "text-white")} strokeWidth={1.8} />
-            </div>
-            <div>
-              <p className={cn("font-semibold tracking-[0.18em] leading-none", isPreview ? "text-[1.1rem]" : "text-[1rem]")}>LAR PLÁSTICOS</p>
-              <p className={cn("mt-1 leading-none text-white/85", isPreview ? "text-[0.72rem]" : "text-[0.62rem]")}>Qualidade que transforma</p>
-            </div>
-          </div>
+const SignatureCanvas = forwardRef<HTMLDivElement, SignatureCanvasProps>(
+  function SignatureCanvas({ data }, ref) {
+    const fontRoot = "font-[family-name:var(--font-montserrat)]";
+    const formattedWhatsApp = formatPhoneNumber(data.whatsapp);
+    const hasWhatsApp = !!data.whatsapp && !data.noWhatsApp;
+    const phoneText = data.noRamal
+      ? formattedWhatsApp
+      : `${formattedWhatsApp} - Ramal: ${data.ramal}`;
+
+    return (
+      <div
+        ref={ref}
+        className={cn("relative overflow-hidden bg-white text-[#28481f]", fontRoot)}
+        style={{ width: `${canvasWidth}px`, height: `${canvasHeight}px` }}
+        data-signature-canvas="true"
+      >
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_120px_55px,rgba(93,169,61,0.13),transparent_30%),radial-gradient(circle_at_470px_160px,rgba(40,72,31,0.08),transparent_28%)]" />
+        <div className="pointer-events-none absolute inset-0 opacity-40">
+          <img
+            alt=""
+            src={imgWhatsAppImage20260513At1025251}
+            crossOrigin="anonymous"
+            className="absolute left-[-80px] top-[-69px] h-[306px] w-[485px] max-w-none mix-blend-multiply opacity-38"
+          />
         </div>
 
-        <div className={cn("flex flex-1 flex-col justify-between text-white", isPreview ? "px-6 py-5" : "px-4 py-3")}>
-          <div className={isPreview ? "space-y-2" : "space-y-1"}>
-            <div className={cn("inline-flex items-center gap-1.5 rounded-full border border-lime-300/40 bg-white/10 font-medium text-lime-100 backdrop-blur-sm", isPreview ? "px-2.5 py-1 text-[0.68rem]" : "px-2 py-0.5 text-[0.55rem]") }>
-              <Sparkles className={cn(isPreview ? "h-3 w-3" : "h-2.5 w-2.5")} />
-              Assinatura gerada automaticamente
+        <img
+          alt=""
+          src={imgEllipse2}
+          crossOrigin="anonymous"
+          className="pointer-events-none absolute left-px top-[110px] h-[180px] w-[299px] max-w-none opacity-80"
+        />
+        <img
+          alt=""
+          src={imgEllipse3}
+          crossOrigin="anonymous"
+          className="pointer-events-none absolute left-[-70px] top-[-93px] h-[180px] w-[292px] max-w-none opacity-80"
+        />
+
+        <div className="relative h-full w-full overflow-hidden">
+          <div className="absolute left-[20px] top-[10px] flex h-[178px] w-[214px] flex-col items-center justify-start gap-[6px] text-center">
+            <div className="relative h-[156px] w-[117px] overflow-hidden">
+              <img
+                alt="Logo Lar Plásticos"
+                src={imgLogo031}
+                crossOrigin="anonymous"
+                className="absolute left-0 top-0 h-full w-full max-w-none object-contain"
+              />
             </div>
-            <h2 className={cn("font-semibold leading-none tracking-tight", isPreview ? "max-w-[340px] truncate text-[2rem]" : "max-w-[250px] truncate text-[1.5rem]")}>{data.nome}</h2>
-            <p className={cn("text-white/85", isPreview ? "text-[1rem]" : "text-[0.85rem]")}>{data.cargo}</p>
+
+            <p className="w-full text-center text-[9px] leading-[1.04] text-[#28481f]">
+              Eu ajudei a{" "}
+              <span
+                className="font-bold text-transparent"
+                style={{
+                  backgroundImage:
+                    "linear-gradient(67.74692748278864deg, rgb(93, 169, 61) 12.499%, rgb(40, 72, 31) 74.39%)",
+                  WebkitBackgroundClip: "text",
+                  backgroundClip: "text",
+                }}
+              >
+                construir essa história.
+              </span>
+            </p>
           </div>
 
-          <div className={cn("grid grid-cols-2 text-[0.68rem]", isPreview ? "gap-3" : "gap-2")}>
-            <InfoRow icon={Phone} label="Ramal" value={data.ramal} compact={!isPreview} />
-            <InfoRow icon={Mail} label="Email" value={data.email} compact={!isPreview} />
-            <InfoRow icon={Phone} label="WhatsApp" value={data.whatsapp} compact={!isPreview} />
-            <InfoRow icon={MapPin} label="Filial" value={data.branch} compact={!isPreview} />
-            <InfoRow icon={Globe} label="Endereço" value={data.address} className="col-span-2" compact={!isPreview} />
+          <div className="absolute left-[258px] top-[32.5px] -translate-y-1/2 text-[24px] font-extrabold leading-[1.04] text-[#28481f]">
+            {data.nome}
+          </div>
+
+          <div className="absolute left-[258px] top-[57.5px] -translate-y-1/2 text-[15px] font-medium leading-[1.04] text-[#28481f]">
+            {data.cargo}
+          </div>
+
+          {hasWhatsApp ? (
+            <IconTextRow icon={imgPhone} top={77} left={258} text={phoneText} />
+          ) : null}
+          <IconTextRow
+            icon={imgEmail}
+            top={hasWhatsApp ? 102 : 77}
+            left={258}
+            text={data.email}
+          />
+          <IconTextRow
+            icon={imgAddress}
+            top={hasWhatsApp ? 129 : 104}
+            left={258}
+            text={data.address}
+            width={245}
+            className="leading-[1.04]"
+            align="start"
+          />
+          <IconTextRow
+            icon={imgInternet}
+            top={hasWhatsApp ? 171 : 146}
+            left={258}
+            text="www.larplasticos.com.br"
+          />
+
+          <div className="absolute left-[92px] top-[-127px] flex h-[364px] w-[515px] items-center justify-center">
+            <div className="-rotate-90 flex-none">
+              <img
+                alt=""
+                src={imgSimboloCinzaA4Degrade1}
+                crossOrigin="anonymous"
+                className="h-[515px] w-[364px] max-w-none object-cover opacity-28"
+              />
+            </div>
+          </div>
+
+          <div className="absolute left-[-57px] top-[89px] flex h-[120.516px] w-[125.097px] items-center justify-center">
+            <div className="rotate-[-11.93deg] flex-none">
+              <img
+                alt=""
+                src={imgSImbolo1}
+                crossOrigin="anonymous"
+                className="h-[100.658px] w-[106.594px] max-w-none object-cover blur-[1.1px] opacity-53"
+              />
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  );
-}
+    );
+  }
+);
 
-function InfoRow({
-  icon: Icon,
-  label,
-  value,
+function IconTextRow({
+  icon,
+  top,
+  left,
+  text,
+  width,
   className,
-  compact = false,
+  align = "center",
 }: {
-  icon: React.ComponentType<{ className?: string }>;
-  label: string;
-  value: string;
+  icon: string;
+  top: number;
+  left: number;
+  text: string;
+  width?: number;
   className?: string;
-  compact?: boolean;
+  align?: "center" | "start";
 }) {
   return (
     <div
       className={cn(
-        "rounded-xl border border-white/12 bg-white/8 backdrop-blur-sm",
-        compact ? "p-2" : "p-3",
+        "absolute flex gap-2 text-[#28481f]",
+        align === "center" ? "items-center" : "items-start",
         className
       )}
+      style={{ top, left, width: width ? `${width}px` : undefined }}
     >
-      <div className={cn("mb-1 flex items-center gap-1.5 font-medium uppercase tracking-[0.18em] text-lime-100/90", compact ? "text-[0.55rem]" : "text-[0.62rem]") }>
-        <Icon className={cn(compact ? "h-3 w-3" : "h-3.5 w-3.5", "text-lime-300")} />
-        {label}
-      </div>
-      <p className={cn("text-white", compact ? "text-[0.72rem] leading-4" : "text-[0.82rem] leading-5")}>{value}</p>
+      <img
+        alt=""
+        src={icon}
+        crossOrigin="anonymous"
+        className={cn(
+          "h-[15px] w-[15px] flex-none object-contain",
+          align === "start" ? "mt-[3px]" : ""
+        )}
+      />
+      <p className="text-[11.5px] font-medium leading-[1.02]">{text}</p>
     </div>
   );
 }

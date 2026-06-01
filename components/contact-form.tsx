@@ -11,6 +11,7 @@ import {
   MapPin,
   Phone,
   Send,
+  Signature,
   User,
 } from "lucide-react";
 
@@ -46,6 +47,7 @@ export function ContactForm() {
     register,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<ContactFormValues>({
     resolver: zodResolver(contactFormSchema),
@@ -53,15 +55,27 @@ export function ContactForm() {
       nome: "",
       cargo: "",
       ramal: "",
+      noRamal: false,
       email: "",
       whatsapp: "",
       endereco: branchOptions[0]?.value ?? "",
+      noWhatsApp: false,
     },
   });
 
   const selectedEndereco = useWatch({
     control,
     name: "endereco",
+  });
+
+  const noRamal = useWatch({
+    control,
+    name: "noRamal",
+  });
+
+  const noWhatsApp = useWatch({
+    control,
+    name: "noWhatsApp",
   });
 
   const selectedBranch = branchOptions.find(
@@ -82,16 +96,20 @@ export function ContactForm() {
     }
 
     const supabase = createSupabaseBrowserClient();
+    const ramal = values.noRamal ? "Não tenho" : values.ramal.trim();
+    const emailLocal = values.email.replace(/@.*$/, "").trim();
+    const email = `${emailLocal}@larplasticos.com.br`;
+    const whatsapp = values.noWhatsApp ? "" : values.whatsapp.trim();
 
     const { error } = await supabase
-      .from("contact_submissions" as any)
+      .from("contact_submissions")
       .insert([
       {
         nome: values.nome,
         cargo: values.cargo,
-        ramal: values.ramal,
-        email: values.email,
-        whatsapp: values.whatsapp,
+        ramal,
+        email,
+        whatsapp,
         branch_code: branchDetails.value,
         branch_label: branchDetails.label,
         endereco: branchDetails.address,
@@ -110,8 +128,10 @@ export function ContactForm() {
       nome: "",
       cargo: "",
       ramal: "",
+      noRamal: false,
       email: "",
       whatsapp: "",
+      noWhatsApp: false,
       endereco: branchOptions[0]?.value ?? "",
     });
 
@@ -122,6 +142,9 @@ export function ContactForm() {
 
     const signaturePayload = {
       ...values,
+      email,
+      whatsapp,
+      ramal,
       branch: branchDetails.label,
       address: branchDetails.address,
     };
@@ -136,52 +159,24 @@ export function ContactForm() {
 
   return (
     <main className="min-h-screen bg-green-50 px-4 py-10 text-foreground sm:px-6 lg:px-8">
-      <div className="mx-auto grid w-full max-w-6xl gap-8 lg:grid-cols-[1fr_1.2fr] lg:items-start">
-        <section className="flex flex-col justify-between rounded-3xl border border-green-200 bg-green-100/70 p-8 shadow-sm">
-          <div className="space-y-5">
-            <div className="inline-flex items-center gap-2 rounded-full border border-lime-300 bg-white px-3 py-1 text-xs font-medium text-lime-600 shadow-sm">
-              <CheckCircle2 className="h-3.5 w-3.5" />
-              Cadastro interno
-            </div>
-            <div className="space-y-3">
-              <h1 className="max-w-md text-4xl font-semibold tracking-tight text-green-950">
-                Formulário de contato da Lar Plásticos
-              </h1>
-              <p className="max-w-lg text-sm leading-6 text-green-950/75">
-                Preencha os dados do colaborador, escolha a filial e envie para o
-                Supabase com persistência centralizada.
-              </p>
-            </div>
-          </div>
+      <div className="mx-auto grid w-full max-w-6xl gap-8 ">
 
-          <div className="mt-8 space-y-4 rounded-2xl border border-green-200 bg-white p-5 shadow-sm">
-            <div className="flex items-center gap-2 text-sm font-medium text-green-900">
-              <MapPin className="h-4 w-4 text-green-700" />
-              Filial selecionada
-            </div>
-            <div className="space-y-1">
-              <p className="text-base font-semibold text-green-950">
-                {selectedBranch?.label ?? "Filial"}
-              </p>
-              <p className="text-sm leading-6 text-muted-foreground">
-                {selectedBranch?.address}
-              </p>
-            </div>
-          </div>
-
-          <p className="mt-6 text-xs leading-5 text-green-950/70">
-            O fundo da página fica em verde, enquanto os campos permanecem brancos
-            para leitura rápida e contraste melhor.
-          </p>
-        </section>
 
         <Card className="border-green-200 bg-white/95 shadow-lg shadow-green-100/60 backdrop-blur">
           <CardHeader>
+         <div className="mb-2 flex items-center justify-center sm:justify-start">
+              <img
+                src="/logo-lar.png"
+                alt="Lar Plásticos"
+                className="h-10 w-auto object-contain"
+              />
+            </div>
+           
             <CardTitle className="text-2xl text-green-950">
-              Dados do contato
+              Assinatura de email
             </CardTitle>
             <CardDescription>
-              Todos os campos são obrigatórios para o registro no banco.
+              Preencha os dados abaixo para gerar sua assinatura personalizada.
             </CardDescription>
           </CardHeader>
 
@@ -225,10 +220,19 @@ export function ContactForm() {
                       id="ramal"
                       placeholder="Ex.: 1234"
                       inputMode="numeric"
+                      disabled={noRamal}
                       className="pl-10"
                       {...register("ramal")}
                     />
                   </FieldWithIcon>
+                  <label className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 rounded border-slate-300 text-green-700 accent-green-700"
+                      {...register("noRamal")}
+                    />
+                    Não tenho ramal
+                  </label>
                   {errors.ramal ? (
                     <p className="text-sm text-destructive">{errors.ramal.message}</p>
                   ) : null}
@@ -237,13 +241,42 @@ export function ContactForm() {
                 <div className="space-y-2 sm:col-span-2">
                   <Label htmlFor="email">Email</Label>
                   <FieldWithIcon icon={Mail}>
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="nome@larplasticos.com.br"
-                      className="pl-10"
-                      {...register("email")}
-                    />
+                    <div className="relative">
+                      <Input
+                        id="email"
+                        type="text"
+                        inputMode="email"
+                        placeholder="nome"
+                        pattern="^[^@]+$"
+                        className="pl-10 pr-36"
+                        {...register("email")}
+                        onKeyDown={(event) => {
+                          if (event.key === "@") {
+                            event.preventDefault();
+                          }
+                        }}
+                        onInput={(event) => {
+                          const input = event.target as HTMLInputElement;
+                          const cleaned = input.value.replace(/@/g, "");
+                          if (input.value !== cleaned) {
+                            input.value = cleaned;
+                            setValue("email", cleaned, { shouldDirty: true, shouldTouch: true });
+                          }
+                        }}
+                        onPaste={(event) => {
+                          const paste = event.clipboardData.getData("text");
+                          if (paste.includes("@")) {
+                            event.preventDefault();
+                          }
+                        }}
+                      />
+                      <span
+                        aria-hidden="true"
+                        className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 whitespace-nowrap text-sm text-slate-500 bg-white border-l border-slate-200 px-3 py-1 rounded-r-md shadow-sm"
+                      >
+                        @larplasticos.com.br
+                      </span>
+                    </div>
                   </FieldWithIcon>
                   {errors.email ? (
                     <p className="text-sm text-destructive">{errors.email.message}</p>
@@ -255,11 +288,40 @@ export function ContactForm() {
                   <FieldWithIcon icon={Phone}>
                     <Input
                       id="whatsapp"
-                      placeholder="(11) 99999-9999"
+                      inputMode="tel"
+                      placeholder="(11) 9 9999 9999"
+                      maxLength={16}
                       className="pl-10"
-                      {...register("whatsapp")}
+                      disabled={noWhatsApp}
+                      {...register("whatsapp", {
+                        onChange: (event) => {
+                          const value = event.target.value;
+                          const digits = value.replace(/\D/g, "").slice(0, 11);
+                          const formatted = digits.replace(
+                            /^(\d{0,2})(\d{0,1})(\d{0,4})(\d{0,4})$/,
+                            (_: string, ddd: string, first: string, part1: string, part2: string) => {
+                              if (!ddd) return "";
+                              let result = `(${ddd}`;
+                              if (ddd.length === 2) result += ")";
+                              if (first) result += ` ${first}`;
+                              if (part1) result += ` ${part1}`;
+                              if (part2) result += ` ${part2}`;
+                              return result.trim();
+                            }
+                          );
+                          event.target.value = formatted;
+                        },
+                      })}
                     />
                   </FieldWithIcon>
+                  <label className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 rounded border-slate-300 text-green-700 accent-green-700"
+                      {...register("noWhatsApp")}
+                    />
+                    Não quero informar
+                  </label>
                   {errors.whatsapp ? (
                     <p className="text-sm text-destructive">
                       {errors.whatsapp.message}
@@ -278,6 +340,9 @@ export function ContactForm() {
                       ))}
                     </Select>
                   </FieldWithIcon>
+                  <p className="text-sm leading-6 text-muted-foreground">
+                    {selectedBranch?.address ?? "Selecione uma filial para ver o endereço."}
+                  </p>
                   {errors.endereco ? (
                     <p className="text-sm text-destructive">
                       {errors.endereco.message}
@@ -304,8 +369,8 @@ export function ContactForm() {
                 className="w-full bg-green-700 text-white hover:bg-green-800"
                 disabled={isSubmitting}
               >
-                <Send className="h-4 w-4" />
-                {isSubmitting ? "Enviando..." : "Salvar no Supabase"}
+                <Signature className="h-4 w-4" />
+                {isSubmitting ? "Enviando..." : "Gerar assinatura"}
               </Button>
             </form>
           </CardContent>

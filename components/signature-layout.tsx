@@ -21,13 +21,6 @@ function formatPhoneNumber(value: string) {
   return `(${digits.slice(0, 2)}) ${digits.slice(2, 3)} ${digits.slice(3, 7)} ${digits.slice(7)}`;
 }
 
-const imgWhatsAppImage20260513At1025251 =
-  "https://www.figma.com/api/mcp/asset/ee62394f-c38a-4842-b609-e5a8b5ec9bd5";
-
-
-
-const imgWhatsAppIcon =
-  "https://www.figma.com/api/mcp/asset/7a084744-040a-4af7-abb4-64ad2321b9e0";
 
 type SignatureLayoutProps = {
   data: SignatureData;
@@ -210,7 +203,7 @@ const SignatureCanvas = forwardRef<HTMLDivElement, SignatureCanvasProps>(
             alt=""
             src="Background.jpg"
             crossOrigin="anonymous"
-            className="absolute left-[-20px] top-[-69px] h-[306px] w-[485px] max-w-none mix-blend-multiply opacity-38"
+            className="absolute left-[-20px] top-[-69px] h-[306px] w-[485px] max-w-none mix-blend-multiply "
           />
         </div>
 
@@ -261,7 +254,7 @@ const SignatureCanvas = forwardRef<HTMLDivElement, SignatureCanvasProps>(
                   {phoneText} / 
                   <img
                     alt="WhatsApp"
-                    src={imgWhatsAppIcon}
+                    src="WhatsApp.jpg"
                     crossOrigin="anonymous"
                     className="h-[15px] w-[15px] object-contain"
                   />

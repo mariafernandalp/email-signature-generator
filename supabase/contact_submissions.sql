@@ -28,8 +28,20 @@ create policy "Allow public upload to signatures bucket"
   to anon
   with check (bucket_id = 'assinaturas');
 
+create policy "Allow public update to signatures bucket"
+  on storage.objects
+  for update
+  to anon
+  using (bucket_id = 'assinaturas')
+  with check (bucket_id = 'assinaturas');
+
 create policy "Allow public read from signatures bucket"
   on storage.objects
   for select
   to anon
   using (bucket_id = 'assinaturas');
+
+-- criar o bucket (se ainda nao existir)
+insert into storage.buckets (id, name, public, avif_autodetection)
+values ('assinaturas', 'assinaturas', true, false)
+on conflict (id) do nothing;

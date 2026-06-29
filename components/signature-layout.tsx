@@ -23,24 +23,9 @@ function formatPhoneNumber(value: string) {
 
 const imgWhatsAppImage20260513At1025251 =
   "https://www.figma.com/api/mcp/asset/ee62394f-c38a-4842-b609-e5a8b5ec9bd5";
-const imgLogo031 =
-  "https://www.figma.com/api/mcp/asset/9d80fd46-c861-4538-8377-c4356b1b6792";
-const imgPhone =
-  "https://www.figma.com/api/mcp/asset/3f055a37-60b4-4e91-9050-7e7686017b3b";
-const imgEmail =
-  "https://www.figma.com/api/mcp/asset/a6f011b6-0e69-401e-836b-addd922f781b";
-const imgAddress =
-  "https://www.figma.com/api/mcp/asset/d12d36f0-529f-4c17-b0f3-d1cf290df777";
-const imgInternet =
-  "https://www.figma.com/api/mcp/asset/f2fb8efd-53e5-4283-8d31-1eb6494804f1";
-const imgSimboloCinzaA4Degrade1 =
-  "https://www.figma.com/api/mcp/asset/0f4be110-5e11-44ae-acc1-901ac96da631";
-const imgSImbolo1 =
-  "https://www.figma.com/api/mcp/asset/0c7bf45b-39d2-4e50-bd45-7ad16927d219";
-const imgEllipse2 =
-  "https://www.figma.com/api/mcp/asset/cc5d9e14-f72c-42f1-a47e-9e3cdf55326a";
-const imgEllipse3 =
-  "https://www.figma.com/api/mcp/asset/e5a20824-4d6f-4248-97b8-fd0593320c4a";
+
+
+
 const imgWhatsAppIcon =
   "https://www.figma.com/api/mcp/asset/7a084744-040a-4af7-abb4-64ad2321b9e0";
 
@@ -223,31 +208,20 @@ const SignatureCanvas = forwardRef<HTMLDivElement, SignatureCanvasProps>(
         <div className="pointer-events-none absolute inset-0 opacity-40">
           <img
             alt=""
-            src={imgWhatsAppImage20260513At1025251}
+            src="Background.jpg"
             crossOrigin="anonymous"
             className="absolute left-[-80px] top-[-69px] h-[306px] w-[485px] max-w-none mix-blend-multiply opacity-38"
           />
         </div>
 
-        <img
-          alt=""
-          src={imgEllipse2}
-          crossOrigin="anonymous"
-          className="pointer-events-none absolute left-px top-[110px] h-[180px] w-[299px] max-w-none opacity-80"
-        />
-        <img
-          alt=""
-          src={imgEllipse3}
-          crossOrigin="anonymous"
-          className="pointer-events-none absolute left-[-70px] top-[-93px] h-[180px] w-[292px] max-w-none opacity-80"
-        />
+        
 
         <div className="relative h-full w-full overflow-hidden">
           <div className="absolute left-[20px] top-[10px] flex h-[178px] w-[214px] flex-col items-center justify-start gap-[6px] text-center">
             <div className="relative h-[156px] w-[117px] overflow-hidden">
               <img
                 alt="Logo Lar Plásticos"
-                src={imgLogo031}
+                src="/Logo-03 1.svg"
                 crossOrigin="anonymous"
                 className="absolute left-0 top-0 h-full w-full max-w-none object-contain"
               />
@@ -278,7 +252,7 @@ const SignatureCanvas = forwardRef<HTMLDivElement, SignatureCanvasProps>(
           </div>
 
           <IconTextRow
-            icon={imgPhone}
+            icon="/Phone.jpg"
             top={77}
             left={258}
             text={
@@ -299,13 +273,13 @@ const SignatureCanvas = forwardRef<HTMLDivElement, SignatureCanvasProps>(
             }
           />
           <IconTextRow
-            icon={imgEmail}
+            icon="Email.jpg"
             top={102}
             left={258}
             text={data.email}
           />
           <IconTextRow
-            icon={imgAddress}
+            icon="Address.jpg"
             top={129}
             left={258}
             text={data.address}
@@ -314,29 +288,19 @@ const SignatureCanvas = forwardRef<HTMLDivElement, SignatureCanvasProps>(
             align="start"
           />
           <IconTextRow
-            icon={imgInternet}
+            icon="Internet.jpg"
             top={171}
             left={258}
             text="www.larplasticos.com.br"
           />
 
-          <div className="absolute left-[92px] top-[-127px] flex h-[364px] w-[515px] items-center justify-center">
-            <div className="-rotate-90 flex-none">
-              <img
-                alt=""
-                src={imgSimboloCinzaA4Degrade1}
-                crossOrigin="anonymous"
-                className="h-[515px] w-[364px] max-w-none object-cover opacity-28"
-              />
-            </div>
-          </div>
+          
 
           <div className="absolute left-[-57px] top-[89px] flex h-[120.516px] w-[125.097px] items-center justify-center">
             <div className="rotate-[-11.93deg] flex-none">
               <img
                 alt=""
-                src={imgSImbolo1}
-                crossOrigin="anonymous"
+                src="/SImbolo 1.svg"
                 className="h-[100.658px] w-[106.594px] max-w-none object-cover blur-[1.1px] opacity-53"
               />
             </div>

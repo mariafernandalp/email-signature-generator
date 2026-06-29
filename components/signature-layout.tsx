@@ -210,7 +210,7 @@ const SignatureCanvas = forwardRef<HTMLDivElement, SignatureCanvasProps>(
             alt=""
             src="Background.jpg"
             crossOrigin="anonymous"
-            className="absolute left-[-80px] top-[-69px] h-[306px] w-[485px] max-w-none mix-blend-multiply opacity-38"
+            className="absolute left-[-20px] top-[-69px] h-[306px] w-[485px] max-w-none mix-blend-multiply opacity-38"
           />
         </div>
 
@@ -296,12 +296,12 @@ const SignatureCanvas = forwardRef<HTMLDivElement, SignatureCanvasProps>(
 
           
 
-          <div className="absolute left-[-57px] top-[89px] flex h-[120.516px] w-[125.097px] items-center justify-center">
+          <div className="absolute left-[-100px] top-[89px] flex h-[130px] w-[230px] items-center justify-center">
             <div className="rotate-[-11.93deg] flex-none">
               <img
                 alt=""
                 src="/SImbolo 1.svg"
-                className="h-[100.658px] w-[106.594px] max-w-none object-cover blur-[1.1px] opacity-53"
+                className="h-max-w-none object-cover "
               />
             </div>
           </div>

@@ -1,9 +1,9 @@
-<svg width="71" height="114" viewBox="0 0 71 114" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="130" height="125" viewBox="0 0 130 125" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g opacity="0.53" filter="url(#filter0_f_1_22)">
-<rect x="-57" y="24.2318" width="106.594" height="100.658" transform="rotate(-11.9283 -57 24.2318)" fill="url(#pattern0_1_22)"/>
+<rect x="2.2" y="24.2318" width="106.594" height="100.658" transform="rotate(-11.9283 2.2 24.2318)" fill="url(#pattern0_1_22)"/>
 </g>
 <defs>
-<filter id="filter0_f_1_22" x="-59.2" y="-3.09944e-06" width="129.497" height="124.916" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<filter id="filter0_f_1_22" x="-3.09944e-06" y="-1.83582e-05" width="129.497" height="124.916" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
 <feFlood flood-opacity="0" result="BackgroundImageFix"/>
 <feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
 <feGaussianBlur stdDeviation="1.1" result="effect1_foregroundBlur_1_22"/>
